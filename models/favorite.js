@@ -6,10 +6,10 @@ const favoriteSchema = new Schema({
         type: Schema.Types.ObjectId,
         refs: 'User'
     },
-    campsites: {
+    campsites: [{
         type: Schema.Types.ObjectId,
         refs: 'Campsite'
-    }
+    }]
 }, {
     timestamps: true
 });

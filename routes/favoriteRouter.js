@@ -1,8 +1,9 @@
 const express = require('express')
 const Favorite = require('../models/favorite')
 const authenticate = require('../authenticate');
+const user = require('../models/user')
 const cors = require('./cors');
-const favorite = require('../models/favorite');
+
 
 const favoriteRouter = express.Router();
 
@@ -10,8 +11,8 @@ favoriteRouter.route('/')
 .options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
 .get(cors.cors, authenticate.verifyUser, (req, res, next) => {
     Favorite.find({user: req.user._id})
-    .populate('user')
-    .populate('campsites')
+    .populate('users')
+    .populate('campsite')
     .then(favorite => {
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json')
@@ -20,15 +21,16 @@ favoriteRouter.route('/')
     .catch(err => next(err))
 })
 .post(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
-    Favorite.find({user: req.user._id})
+    Favorite.find({ user: req.user._id })
     .then(favorite => {
-        if(favorite){
+        console.log(favorite)
+        if(favorite.length){
             req.body.forEach(fav => {
-                if(!favorite.campsites.includes(fav._id)){
-                    favorite.campsites.push(fav._id)
+                if(!favorite[0].campsites.includes(fav._id)){
+                    favorite[0].campsites.push(fav._id)
                 }
             });
-            favorite.save()
+            favorite[0].save()
             .then(favorite => {
                 res.statusCode = 200
                 res.setHeader('Content-Type', 'application/json')
@@ -36,11 +38,12 @@ favoriteRouter.route('/')
             })
             .catch(err => next(err))
         } else {
+            
             Favorite.create({ user: req.user._id })
             .then(favorite => {
                 req.body.forEach(fav => {
                     if(!favorite.campsites.includes(fav._id)){
-                        favorite.campsite.push(fav._id);  
+                        favorite.campsites.push(fav._id);  
                     }
                 });
                 favorite.save()
